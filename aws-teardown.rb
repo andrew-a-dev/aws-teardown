@@ -26,7 +26,7 @@ else
         # Disable notifications
         puts "Problem disabling nagios notificaitons" unless nagios_request('25', host).code == '200'
         # Disable active checks
-        puts "Problem disabling nagios checks" unless nagios_request('25', host).code == '200'
+        puts "Problem disabling nagios checks" unless nagios_request('48', host).code == '200'
         # Delete the node
         `knife node delete -y #{host}`
       else
