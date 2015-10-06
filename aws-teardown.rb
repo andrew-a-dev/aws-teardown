@@ -24,9 +24,9 @@ else
         instance = body["EC2InstanceId"]
         host = ENV['AWS_ENV'] == 'staging' ? "thumbor-aws-staging-#{instance}.vpc.voxops.net" : "thumbor-aws-#{instance}.vpc.voxops.net"
         # Disable notifications
-        puts "Problem disabling nagios notificaitons" unless nagios_request('25', host).code == '200'
+        puts nagios_request('25', host).to_s
         # Disable active checks
-        puts "Problem disabling nagios checks" unless nagios_request('48', host).code == '200'
+        puts nagios_request('48', host).to_s
         # Delete the node
         system('knife','node','delete', '-y', host)
       else
