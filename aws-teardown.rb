@@ -36,7 +36,7 @@ else
     rescue JSON::ParserError
       puts "Not an SNS message"
     ensure
-      sqs_client.delete_message(queue_url: ENV['QUEUE'], receipt_handle: message.receipt_handle)
+      # sqs_client.delete_message(queue_url: ENV['QUEUE'], receipt_handle: message.receipt_handle)
     end
   end
 end
