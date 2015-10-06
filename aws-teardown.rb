@@ -29,7 +29,7 @@ else
         # Disable active checks
         puts "Problem disabling nagios checks" unless nagios_request('48', host).code == '200'
         # Delete the node
-        `knife node delete -y #{host}`
+        system('knife','node','delete', '-y', host)  
       else
         puts "Not a termniation event"
       end
