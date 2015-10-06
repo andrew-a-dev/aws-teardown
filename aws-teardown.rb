@@ -22,13 +22,13 @@ else
       body = JSON.parse(message.body)
       if body["LifecycleTransition"] == "autoscaling:EC2_INSTANCE_TERMINATING"
         instance = body["EC2InstanceId"]
-        host = ENV['AWS_ENV'] == 'staging' ? "thumbor-aws-staging-#{instance}.vpc.voxops.net" : "thumbor-aws-#{instance}.vpc.voxops.net"
+        host = ENV['AWS_ENV'] == 'staging' ? "thumbor-aws-staging-#{instance}" : "thumbor-aws-#{instance}"
         # Disable notifications
-        puts nagios_request('25', host).to_s
+        puts "Problem disabling nagios notificaitons" unless nagios_request('25', host).code == '200'
         # Disable active checks
-        puts nagios_request('48', host).to_s
+        puts "Problem disabling nagios checks" unless nagios_request('48', host).code == '200'
         # Delete the node
-        system('knife','node','delete', '-y', host)
+        system('knife','node','delete', '-y', "#{host}.vpc.voxopst.net")
       else
         puts "Not a termniation event"
       end
