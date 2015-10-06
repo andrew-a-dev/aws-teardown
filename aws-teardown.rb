@@ -23,7 +23,7 @@ else
       sns_message = body["Message"] ? JSON.parse(body["Message"]) : nil
       if sns_message && sns_message["Event"] ==  "autoscaling:EC2_INSTANCE_TERMINATE"
         instance = sns_message["EC2InstanceId"]
-        host = ENV['AWS_ENV'] == 'staging' ? "thumbor-aws-staging-#{instance}" : "thumbor-aws-#{instance}"
+        host = ENV['AWS_ENV'] == 'staging' ? "thumbor-aws-staging-#{instance}.vpc.voxops.net" : "thumbor-aws-#{instance}.vpc.voxops.net"
         # Disable notifications
         puts "Problem disabling nagios notificaitons" unless nagios_request('25', host).code == '200'
         # Disable active checks
