@@ -4,6 +4,7 @@ require 'aws-sdk'
 
 def nagios_request(command, host)
   uri = URI.parse(ENV['NAGIOS_URL'])
+  uri.query = URI.encode_www_form(cmd_typ: command, cmd_mod: 2)
   http = Net::HTTP.new(uri.host, uri.port)
   http.use_ssl = true
   request = Net::HTTP::Get.new(uri.request_uri)
