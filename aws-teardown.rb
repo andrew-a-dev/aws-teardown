@@ -20,9 +20,8 @@ else
   messages.each do |message|
     begin
       body = JSON.parse(message.body)
-      sns_message = body["Message"] ? JSON.parse(body["Message"]) : nil
-      if sns_message && sns_message["Event"] ==  "autoscaling:EC2_INSTANCE_TERMINATE"
-        instance = sns_message["EC2InstanceId"]
+      if body["LifecycleTransition"] == "autoscaling:EC2_INSTANCE_TERMINATING"
+        instance = body["EC2InstanceId"]
         host = ENV['AWS_ENV'] == 'staging' ? "thumbor-aws-staging-#{instance}.vpc.voxops.net" : "thumbor-aws-#{instance}.vpc.voxops.net"
         # Disable notifications
         puts "Problem disabling nagios notificaitons" unless nagios_request('25', host).code == '200'
@@ -36,7 +35,7 @@ else
     rescue JSON::ParserError
       puts "Not an SNS message"
     ensure
-      # sqs_client.delete_message(queue_url: ENV['QUEUE'], receipt_handle: message.receipt_handle)
+      sqs_client.delete_message(queue_url: ENV['QUEUE'], receipt_handle: message.receipt_handle)
     end
   end
 end
