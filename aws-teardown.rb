@@ -4,9 +4,10 @@ require 'aws-sdk'
 
 def nagios_request(command, host)
   uri = URI.parse(ENV['NAGIOS_URL'])
-  uri.query = URI.encode_www_form(cmd_typ: command, cmd_mod: 2)
+  uri.query = URI.encode_www_form(cmd_typ: command, cmd_mod: 2, host: host)
   http = Net::HTTP.new(uri.host, uri.port)
   http.use_ssl = true
+  puts "Requesting: #{uri.request_uri}"
   request = Net::HTTP::Get.new(uri.request_uri)
   request.basic_auth ENV['NAGIOS_USER'], ENV['NAGIOS_PASSWORD']
   http.request(request)
@@ -28,7 +29,7 @@ else
         # Disable active checks
         puts "Problem disabling nagios checks" unless nagios_request('48', host).code == '200'
         # Delete the node
-        system('knife','node','delete', '-y', "#{host}.vpc.voxopst.net")
+        system('knife','node','delete', '-y', "#{host}.vpc.voxops.net")
       else
         puts "Not a termniation event"
       end
