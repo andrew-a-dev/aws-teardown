@@ -34,11 +34,11 @@ else
         system('knife','node','delete', '-y', "#{host}.vpc.voxops.net")
         system('knife','client','delete', '-y', "#{host}.vpc.voxops.net")
         # Notify the ASG that we're done holding-up the termination, and let it complete, if we can
-        if %w{LifecycleActionToken LifecycleHookName AutoScalingGroupName}.all? {|k| body.key? k}
+        if %w{LifecycleActionToken Lifecaws ycleHookName AutoScalingGroupName}.all? {|k| body.key? k}
           autoscaling_client.complete_lifecycle_action(lifecycle_hook_name: body['LifecycleHookName'],
                                                        auto_scaling_group_name: body['AutoScalingGroupName'],
                                                        lifecycle_action_token: body['LifecycleActionToken'],
-                                                       lifecycle_action_result: 'CONTINUE')
+                                                       lifecycle_action_result: 'ABANDON')
         end
       else
         puts "Not a termination event -- ignoring #{body['LifecycleTransition']} message from instance #{body['EC2Instanceid']}"
