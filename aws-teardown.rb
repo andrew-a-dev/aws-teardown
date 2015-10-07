@@ -33,8 +33,6 @@ else
         # Delete the node and client from chef
         system('knife','node','delete', '-y', "#{host}.vpc.voxops.net")
         system('knife','client','delete', '-y', "#{host}.vpc.voxops.net")
-        # We only delete the message if we've dealt with it.
-        sqs_client.delete_message(queue_url: ENV['QUEUE'], receipt_handle: message.receipt_handle)
         # Notify the ASG that we're done holding-up the termination, and let it complete, if we can
         if %w{LifecycleActionToken LifecycleHookName AutoScalingGroupName}.all? {|k| body.key? k}
           autoscaling_client.complete_lifecycle_action(lifecycle_hook_name: body['LifecycleHookName'],
@@ -47,6 +45,9 @@ else
       end
     rescue JSON::ParserError
       puts "Not an SNS message"
+    ensure
+      # Callously delete the message, no matter what! (So we don't get a Q filled with unwanted messages.)
+      sqs_client.delete_message(queue_url: ENV['QUEUE'], receipt_handle: message.receipt_handle)
     end
   end
 end
