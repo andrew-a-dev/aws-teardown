@@ -30,8 +30,9 @@ else
         puts "Problem disabling nagios notificaitons" unless nagios_request('25', host).code == '200'
         # Disable active checks
         puts "Problem disabling nagios checks" unless nagios_request('48', host).code == '200'
-        # Delete the node from chef
+        # Delete the node and client from chef
         system('knife','node','delete', '-y', "#{host}.vpc.voxops.net")
+        system('knife','client','delete', '-y', "#{host}.vpc.voxops.net")
         # We only delete the message if we've dealt with it.
         sqs_client.delete_message(queue_url: ENV['QUEUE'], receipt_handle: message.receipt_handle)
         # Notify the ASG that we're done holding-up the termination, and let it complete, if we can
