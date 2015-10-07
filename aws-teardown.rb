@@ -14,6 +14,8 @@ def nagios_request(command, host)
 end
 
 sqs_client = Aws::SQS::Client.new(region: 'us-east-1')
+autoscaling_client = Aws::AutoScaling::Client.new(region: 'us-east-1')
+
 messages = sqs_client.receive_message(queue_url: ENV['QUEUE'], max_number_of_messages: 1).messages
 if messages.empty?
   puts 'No new messages'
@@ -28,15 +30,22 @@ else
         puts "Problem disabling nagios notificaitons" unless nagios_request('25', host).code == '200'
         # Disable active checks
         puts "Problem disabling nagios checks" unless nagios_request('48', host).code == '200'
-        # Delete the node
+        # Delete the node from chef
         system('knife','node','delete', '-y', "#{host}.vpc.voxops.net")
+        # We only delete the message if we've dealt with it.
+        sqs_client.delete_message(queue_url: ENV['QUEUE'], receipt_handle: message.receipt_handle)
+        # Notify the ASG that we're done holding-up the termination, and let it complete, if we can
+        if %w{LifecycleActionToken LifecycleHookName AutoScalingGroupName}.all? {|k| body.key? k}
+          autoscaling_client.complete_lifecycle_action(lifecycle_hook_name: body['LifecycleHookName'],
+                                                       auto_scaling_group_name: body['AutoScalingGroupName'],
+                                                       lifecycle_action_token: body['LifecycleActionToken'],
+                                                       lifecycle_action_result: 'CONTINUE')
+        end
       else
-        puts "Not a termniation event"
+        puts "Not a termination event -- ignoring #{body['LifecycleTransition']} message from instance #{body['EC2Instanceid']}"
       end
     rescue JSON::ParserError
       puts "Not an SNS message"
-    ensure
-      sqs_client.delete_message(queue_url: ENV['QUEUE'], receipt_handle: message.receipt_handle)
     end
   end
 end
